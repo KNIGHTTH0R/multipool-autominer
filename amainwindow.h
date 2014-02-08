@@ -19,7 +19,11 @@ class AMainWindow : public QMainWindow {
         QWebView *_web_view;
 
         //! Функция загрузки web-страницы.
-        Q_INVOKABLE void loadStart();
+        Q_INVOKABLE void loadStart(const QUrl &url);
+
+    private slots:
+        //! Слот завершения загрузки web-страницы.
+        void onWebViewLoadFinished(bool ok);
 
 };
 

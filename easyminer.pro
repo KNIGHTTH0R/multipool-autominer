@@ -13,4 +13,5 @@ HEADERS  += amainwindow.h \
 	asingleton.h
 
 OTHER_FILES += \
-	README.md
+	README.md \
+    error.html
