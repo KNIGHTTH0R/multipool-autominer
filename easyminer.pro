@@ -8,3 +8,6 @@ SOURCES += main.cpp \
 	amainwindow.cpp
 
 HEADERS  += amainwindow.h
+
+OTHER_FILES += \
+    README.md
