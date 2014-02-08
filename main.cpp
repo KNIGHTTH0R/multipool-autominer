@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName("easyminer");
 
     QApplication app(argc, argv);
+    app.setQuitOnLastWindowClosed(false);
 
     QLocale::setDefault(QLocale(QLocale::Russian, QLocale::RussianFederation));
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));

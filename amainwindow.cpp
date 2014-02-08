@@ -1,7 +1,9 @@
-#include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 
+#include <QtWidgets/QSystemTrayIcon>
+#include <QtWidgets/QApplication>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QMenu>
 
 #include <QtWebKitWidgets/QWebView>
 
@@ -29,8 +31,40 @@ AMainWindow::AMainWindow(QWidget *parent) : QMainWindow(parent) {
 
     setCentralWidget(_web_view);
 
+    QMetaObject::invokeMethod(this, "trayInit", Qt::QueuedConnection);
     QMetaObject::invokeMethod(this, "loadStart", Qt::QueuedConnection
         , Q_ARG(QUrl,QUrl(START_PAGE)));
+}
+
+
+// ========================================================================== //
+// Функция вывода иконки в трей.
+// ========================================================================== //
+void AMainWindow::trayInit() {
+    QMenu *tray_menu = new QMenu(this);
+    tray_menu->addAction(tr("Показать easyminer"), this, SLOT(show()));
+    tray_menu->addAction(tr("Выйти"), qApp, SLOT(quit()));
+
+    // QtBug: придётся использовать костыль.
+    QSet<QWidget*> before = QApplication::topLevelWidgets().toSet();
+
+    QSystemTrayIcon *tray
+        = new QSystemTrayIcon(QIcon(":/images/tray.png"), this);
+    tray->setContextMenu(tray_menu);
+    tray->show();
+
+    QSet<QWidget*> after = QApplication::topLevelWidgets().toSet();
+
+    after -= before;
+    if(!after.isEmpty()) {
+        QWidget *wdg = (*after.begin());
+        wdg->setWindowFlags(
+            Qt::Window|Qt::FramelessWindowHint|Qt::SplashScreen);
+        wdg->show();
+        wdg->hide();
+        qApp->processEvents();
+        wdg->show();
+    }
 }
 
 

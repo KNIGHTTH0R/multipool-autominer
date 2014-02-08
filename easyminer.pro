@@ -15,3 +15,6 @@ HEADERS  += amainwindow.h \
 OTHER_FILES += \
 	README.md \
     error.html
+
+RESOURCES += \
+    images.qrc

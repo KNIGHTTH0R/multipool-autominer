@@ -18,6 +18,9 @@ class AMainWindow : public QMainWindow {
     private:
         QWebView *_web_view;
 
+        //! Функция вывода иконки в трей.
+        Q_INVOKABLE void trayInit();
+
         //! Функция загрузки web-страницы.
         Q_INVOKABLE void loadStart(const QUrl &url);
 
