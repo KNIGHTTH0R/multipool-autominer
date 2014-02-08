@@ -5,6 +5,7 @@
 #include <QtWidgets/QMainWindow>
 
 class QWebView;
+class QProcess;
 
 class AMainWindow : public QMainWindow {
     Q_OBJECT
@@ -21,6 +22,8 @@ class AMainWindow : public QMainWindow {
 
     private:
         QWebView *_web_view;
+
+        QProcess *_miner_process;
 
         //! Функция вывода иконки в трей.
         Q_INVOKABLE void trayInit();

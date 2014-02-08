@@ -1,3 +1,4 @@
+#include <QtCore/QProcess>
 #include <QtCore/QDir>
 
 #include <QtGui/QMouseEvent>
@@ -35,6 +36,8 @@ AMainWindow::AMainWindow(QWidget *parent) : QMainWindow(parent) {
 
     setCentralWidget(_web_view);
 
+    _miner_process = new QProcess(this);
+
     QMetaObject::invokeMethod(this, "trayInit", Qt::QueuedConnection);
 
     QString fname = QCoreApplication::applicationDirPath() +"/page.html";
@@ -43,7 +46,7 @@ AMainWindow::AMainWindow(QWidget *parent) : QMainWindow(parent) {
         , Q_ARG(QUrl,QUrl::fromLocalFile(fname)));
 }
 
-#include <QDebug>
+
 // ========================================================================== //
 // Событие фильтра.
 // ========================================================================== //
@@ -69,11 +72,48 @@ bool AMainWindow::eventFilter(QObject *object, QEvent *event) {
                         if(!button.hasAttribute("prefixes")) continue;
                         if(!button.hasAttribute("params"))   continue;
 
-                        qDebug() << "start miner!" << button.attribute("miner") << button.attribute("prefixes") << button.attribute("params");
+                        if(_miner_process->state() != QProcess::NotRunning)
+                            continue;
+
+                        QStringList prefixes
+                            = button.attribute("prefixes")
+                                .split('|', QString::SkipEmptyParts);
+
+                        if(!prefixes.isEmpty()) {
+                            QProcessEnvironment environment;
+
+                            QListIterator<QString> prefixes_iter(prefixes);
+                            while(prefixes_iter.hasNext()) {
+                                const QString &prefix = prefixes_iter.next();
+                                QString name = prefix.section(' ', 0, 0);
+                                QString value = prefix.section(' ', 1, 1);
+                                environment.insert(name, value);
+                            }
+
+                            _miner_process->setProcessEnvironment(environment);
+                        }
+
+                        QString fname = QCoreApplication::applicationDirPath();
+                        fname.append("/");
+                        fname.append(button.attribute("miner"));
+                        fname.append("/");
+                        fname.append(button.attribute("miner"));
+                        fname.append(".exe ");
+
+                        fname = QDir::toNativeSeparators(fname);
+
+                        fname.append(button.attribute("params"));
+
+                        _miner_process->start(fname);
+
+                        break;
                     }
 
                     if(button.hasClass("miner_stop")) {
-                        qDebug() << "stop miner!";
+                        if(_miner_process->state() == QProcess::Running)
+                            _miner_process->terminate();
+
+                        break;
                     }
                 }
             }
