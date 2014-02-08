@@ -16,6 +16,9 @@ class AMainWindow : public QMainWindow {
         //! Деструктор.
         virtual ~AMainWindow() {}
 
+        //! Событие фильтра.
+        virtual bool eventFilter(QObject *object, QEvent *event);
+
     private:
         QWebView *_web_view;
 

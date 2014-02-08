@@ -1,15 +1,18 @@
 #include <QtCore/QDir>
 
+#include <QtGui/QMouseEvent>
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QMenu>
 
+#include <QtWebKit/QWebElement>
+
+#include <QtWebKitWidgets/QWebFrame>
 #include <QtWebKitWidgets/QWebView>
 
 #include "amainwindow.h"
 #include "alogger.h"
-
-#define START_PAGE "http://google.ru"
 
 // ========================================================================== //
 // Конструктор.
@@ -25,14 +28,59 @@ AMainWindow::AMainWindow(QWidget *parent) : QMainWindow(parent) {
         , statusBar(), SLOT(showMessage(QString)), Qt::QueuedConnection);
 
     _web_view = new QWebView(this);
+    _web_view->installEventFilter(this);
+
     connect(_web_view, SIGNAL(loadFinished(bool))
         , this, SLOT(onWebViewLoadFinished(bool)));
 
     setCentralWidget(_web_view);
 
     QMetaObject::invokeMethod(this, "trayInit", Qt::QueuedConnection);
+
+    QString fname = QCoreApplication::applicationDirPath() +"/page.html";
+    fname = QDir::toNativeSeparators(fname);
     QMetaObject::invokeMethod(this, "loadStart", Qt::QueuedConnection
-        , Q_ARG(QUrl,QUrl(START_PAGE)));
+        , Q_ARG(QUrl,QUrl::fromLocalFile(fname)));
+}
+
+#include <QDebug>
+// ========================================================================== //
+// Событие фильтра.
+// ========================================================================== //
+bool AMainWindow::eventFilter(QObject *object, QEvent *event) {
+    if(event->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
+        if(mouse_event->button() == Qt::LeftButton) {
+            QWebFrame *frame = _web_view->page()->frameAt(mouse_event->pos());
+            if(frame) {
+                QPoint pos = _web_view->mapFromGlobal(mouse_event->globalPos());
+
+                QWebElementCollection buttons
+                    = frame->documentElement().findAll("button");
+
+                for(int i = 0, n = buttons.count(); i < n; ++i) {
+                    QWebElement button = buttons.at(i);
+                    if(button.isNull()) continue;
+
+                    if(!button.geometry().contains(pos)) continue;
+
+                    if(button.hasClass("miner_start")) {
+                        if(!button.hasAttribute("miner"))    continue;
+                        if(!button.hasAttribute("prefixes")) continue;
+                        if(!button.hasAttribute("params"))   continue;
+
+                        qDebug() << "start miner!" << button.attribute("miner") << button.attribute("prefixes") << button.attribute("params");
+                    }
+
+                    if(button.hasClass("miner_stop")) {
+                        qDebug() << "stop miner!";
+                    }
+                }
+            }
+        }
+    }
+
+    return QObject::eventFilter(object, event);
 }
 
 
