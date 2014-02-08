@@ -1,6 +1,5 @@
 #include <QtCore/QDir>
 
-#include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QMenu>
@@ -53,6 +52,9 @@ void AMainWindow::trayInit() {
     tray->setContextMenu(tray_menu);
     tray->show();
 
+    connect(tray, SIGNAL(activated(QSystemTrayIcon::ActivationReason))
+        , this, SLOT(onTrayActivated(QSystemTrayIcon::ActivationReason)));
+
     QSet<QWidget*> after = QApplication::topLevelWidgets().toSet();
 
     after -= before;
@@ -73,6 +75,14 @@ void AMainWindow::trayInit() {
 // ========================================================================== //
 void AMainWindow::loadStart(const QUrl &url) {
     _web_view->load(url);
+}
+
+
+// ========================================================================== //
+// Слот активации иконки в системном трее.
+// ========================================================================== //
+void AMainWindow::onTrayActivated(QSystemTrayIcon::ActivationReason reason) {
+    if(reason != QSystemTrayIcon::Context) show();
 }
 
 

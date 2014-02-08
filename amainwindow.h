@@ -1,6 +1,7 @@
 #ifndef AMAINWINDOW_H
 #define AMAINWINDOW_H
 
+#include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QMainWindow>
 
 class QWebView;
@@ -25,6 +26,9 @@ class AMainWindow : public QMainWindow {
         Q_INVOKABLE void loadStart(const QUrl &url);
 
     private slots:
+        //! Слот активации иконки в системном трее.
+        void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
+
         //! Слот завершения загрузки web-страницы.
         void onWebViewLoadFinished(bool ok);
 
