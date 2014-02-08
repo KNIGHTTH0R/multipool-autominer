@@ -3,6 +3,8 @@
 
 #include <QtWidgets/QMainWindow>
 
+class QWebView;
+
 class AMainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -12,6 +14,12 @@ class AMainWindow : public QMainWindow {
 
         //! Деструктор.
         virtual ~AMainWindow() {}
+
+    private:
+        QWebView *_web_view;
+
+        //! Функция загрузки web-страницы.
+        Q_INVOKABLE void loadStart();
 
 };
 
