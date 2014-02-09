@@ -4,6 +4,7 @@
 #include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QMainWindow>
 
+class QTextEdit;
 class QWebView;
 class QProcess;
 
@@ -23,6 +24,8 @@ class AMainWindow : public QMainWindow {
     private:
         QWebView *_web_view;
 
+        QTextEdit *_text_edit;
+
         QProcess *_miner_process;
 
         //! Функция вывода иконки в трей.
@@ -37,6 +40,9 @@ class AMainWindow : public QMainWindow {
 
         //! Слот завершения загрузки web-страницы.
         void onWebViewLoadFinished(bool ok);
+
+        //! Слот вывода содержимого стандартного потока.
+        void onMinerProcessReadyRead();
 
 };
 

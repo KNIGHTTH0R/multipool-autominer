@@ -5,6 +5,8 @@
 
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QSplitter>
 #include <QtWidgets/QMenu>
 
 #include <QtWebKit/QWebElement>
@@ -34,9 +36,20 @@ AMainWindow::AMainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(_web_view, SIGNAL(loadFinished(bool))
         , this, SLOT(onWebViewLoadFinished(bool)));
 
-    setCentralWidget(_web_view);
+    _text_edit = new QTextEdit(this);
+    _text_edit->setReadOnly(true);
+
+    QSplitter *splitter = new QSplitter(Qt::Vertical, this);
+    splitter->addWidget(_web_view);
+    splitter->addWidget(_text_edit);
+    splitter->setStretchFactor(0, 1);
+
+    setCentralWidget(splitter);
 
     _miner_process = new QProcess(this);
+    _miner_process->setReadChannel(QProcess::StandardOutput);
+    connect(_miner_process, SIGNAL(readyReadStandardOutput())
+        , this, SLOT(onMinerProcessReadyRead()), Qt::QueuedConnection);
 
     QMetaObject::invokeMethod(this, "trayInit", Qt::QueuedConnection);
 
@@ -80,17 +93,12 @@ bool AMainWindow::eventFilter(QObject *object, QEvent *event) {
                                 .split('|', QString::SkipEmptyParts);
 
                         if(!prefixes.isEmpty()) {
-                            QProcessEnvironment environment;
-
                             QListIterator<QString> prefixes_iter(prefixes);
                             while(prefixes_iter.hasNext()) {
                                 const QString &prefix = prefixes_iter.next();
-                                QString name = prefix.section(' ', 0, 0);
-                                QString value = prefix.section(' ', 1, 1);
-                                environment.insert(name, value);
+                                _miner_process->start(prefix);
+                                _miner_process->waitForFinished();
                             }
-
-                            _miner_process->setProcessEnvironment(environment);
                         }
 
                         QString fname = QCoreApplication::applicationDirPath();
@@ -112,6 +120,7 @@ bool AMainWindow::eventFilter(QObject *object, QEvent *event) {
                     if(button.hasClass("miner_stop")) {
                         if(_miner_process->state() == QProcess::Running)
                             _miner_process->terminate();
+                            _miner_process->kill();
 
                         break;
                     }
@@ -191,4 +200,15 @@ void AMainWindow::onWebViewLoadFinished(bool ok) {
             return;
         }
     }
+}
+
+
+// ========================================================================== //
+// Слот вывода содержимого стандартного потока.
+// ========================================================================== //
+void AMainWindow::onMinerProcessReadyRead() {
+    if(_miner_process->state() != QProcess::Running) return;
+
+    QByteArray data = _miner_process->readAllStandardOutput();
+    _text_edit->setPlainText(QString::fromLocal8Bit(data));
 }
