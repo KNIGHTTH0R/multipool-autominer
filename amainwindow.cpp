@@ -5,8 +5,6 @@
 
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStatusBar>
-#include <QtWidgets/QTextEdit>
-#include <QtWidgets/QSplitter>
 #include <QtWidgets/QMenu>
 
 #include <QtWebKit/QWebElement>
@@ -36,20 +34,9 @@ AMainWindow::AMainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(_web_view, SIGNAL(loadFinished(bool))
         , this, SLOT(onWebViewLoadFinished(bool)));
 
-    _text_edit = new QTextEdit(this);
-    _text_edit->setReadOnly(true);
-
-    QSplitter *splitter = new QSplitter(Qt::Vertical, this);
-    splitter->addWidget(_web_view);
-    splitter->addWidget(_text_edit);
-    splitter->setStretchFactor(0, 1);
-
-    setCentralWidget(splitter);
+    setCentralWidget(_web_view);
 
     _miner_process = new QProcess(this);
-    _miner_process->setReadChannel(QProcess::StandardOutput);
-    connect(_miner_process, SIGNAL(readyReadStandardOutput())
-        , this, SLOT(onMinerProcessReadyRead()), Qt::QueuedConnection);
 
     QMetaObject::invokeMethod(this, "trayInit", Qt::QueuedConnection);
 
@@ -200,15 +187,4 @@ void AMainWindow::onWebViewLoadFinished(bool ok) {
             return;
         }
     }
-}
-
-
-// ========================================================================== //
-// Слот вывода содержимого стандартного потока.
-// ========================================================================== //
-void AMainWindow::onMinerProcessReadyRead() {
-    if(_miner_process->state() != QProcess::Running) return;
-
-    QByteArray data = _miner_process->readAllStandardOutput();
-    _text_edit->setPlainText(QString::fromLocal8Bit(data));
 }

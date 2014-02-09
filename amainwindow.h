@@ -41,9 +41,6 @@ class AMainWindow : public QMainWindow {
         //! Слот завершения загрузки web-страницы.
         void onWebViewLoadFinished(bool ok);
 
-        //! Слот вывода содержимого стандартного потока.
-        void onMinerProcessReadyRead();
-
 };
 
 #endif
